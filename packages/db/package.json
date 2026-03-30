@@ -1,0 +1,23 @@
+{
+  "name": "@SkillSync-1/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@SkillSync-1/env": "*",
+    "dotenv": "^17.2.2",
+    "mongoose": "^8.14.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@SkillSync-1/config": "*",
+    "typescript": "^5"
+  }
+}
