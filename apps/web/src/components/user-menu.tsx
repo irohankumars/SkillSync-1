@@ -35,11 +35,23 @@ export default function UserMenu() {
       <DropdownMenuTrigger render={<Button variant="outline" />}>
         {session.user.name}
       </DropdownMenuTrigger>
+
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          {/* 👤 Profile */}
+          <DropdownMenuItem onClick={() => navigate("/profile")}>
+            Profile
+          </DropdownMenuItem>
+
+          {/* 📧 Email */}
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {/* 🚪 Logout */}
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {

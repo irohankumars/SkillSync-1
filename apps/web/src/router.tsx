@@ -6,12 +6,16 @@ import Dashboard from "./routes/dashboard";
 import Home from "./routes/home";
 import Login from "./routes/login";
 import SuccessPage from "./routes/success";
+import Profile from "./routes/profile";
+import Matches from "./routes/matches";
 
 function NotFound() {
   return (
     <main className="container mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-2xl font-semibold">404</h1>
-      <p className="text-muted-foreground">The requested page could not be found.</p>
+      <p className="text-muted-foreground">
+        The requested page could not be found.
+      </p>
     </main>
   );
 }
@@ -26,6 +30,11 @@ export const router = createBrowserRouter([
       { path: "dashboard", element: <Dashboard /> },
       { path: "ai", element: <AI /> },
       { path: "success", element: <SuccessPage /> },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      { path: "matches", element: <Matches /> },
       { path: "*", element: <NotFound /> },
     ],
   },
