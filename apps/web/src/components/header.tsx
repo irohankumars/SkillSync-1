@@ -1,12 +1,12 @@
 import { NavLink } from "react-router";
-
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
 export default function Header() {
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
+    { to: "/", label: "Dashboard" },
+    { to: "/matches", label: "Matches" }, // ✅ added
+    { to: "/profile", label: "Profile" }, // ✅ added
     { to: "/ai", label: "AI Chat" },
   ] as const;
 
@@ -19,7 +19,9 @@ export default function Header() {
               <NavLink
                 key={to}
                 to={to}
-                className={({ isActive }) => (isActive ? "font-bold" : "")}
+                className={({ isActive }) =>
+                  isActive ? "font-bold underline" : "text-muted-foreground"
+                }
                 end
               >
                 {label}
@@ -27,6 +29,7 @@ export default function Header() {
             );
           })}
         </nav>
+
         <div className="flex items-center gap-2">
           <ModeToggle />
           <UserMenu />
