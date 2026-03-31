@@ -19,6 +19,7 @@
   "dependencies": {
     "@SkillSync-1/env": "*",
     "dotenv": "^17.2.2",
+    "react-router-dom": "^7.13.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
@@ -29,7 +30,8 @@
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
