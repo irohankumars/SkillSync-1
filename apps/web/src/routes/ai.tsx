@@ -42,7 +42,9 @@ const AI: React.FC = () => {
             <div
               key={message.id}
               className={`p-3 rounded-lg ${
-                message.role === "user" ? "bg-primary/10 ml-8" : "bg-secondary/20 mr-8"
+                message.role === "user"
+                  ? "bg-primary/10 ml-8"
+                  : "bg-secondary/20 mr-8"
               }`}
             >
               <p className="text-sm font-semibold mb-1">
@@ -53,7 +55,9 @@ const AI: React.FC = () => {
                   return (
                     <Streamdown
                       key={index}
-                      isAnimating={status === "streaming" && message.role === "assistant"}
+                      isAnimating={
+                        status === "streaming" && message.role === "assistant"
+                      }
                     >
                       {part.text}
                     </Streamdown>
@@ -67,7 +71,10 @@ const AI: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full flex items-center space-x-2 pt-2 border-t">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full flex items-center space-x-2 pt-2 border-t"
+      >
         <Input
           name="prompt"
           value={input}

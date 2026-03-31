@@ -28,6 +28,7 @@ app.all("/api/auth{/*path}", toNodeHandler(auth));
 
 app.use(express.json());
 
+// 🤖 AI
 app.post("/ai", async (req, res) => {
   const { messages = [] } = (req.body || {}) as { messages: UIMessage[] };
   const model = wrapLanguageModel({
@@ -44,11 +45,10 @@ app.post("/ai", async (req, res) => {
 app.get("/", (_req, res) => {
   res.status(200).send("OK");
 });
+
 // =======================
 // 🔥 SkillSync APIs START
 // =======================
-
-// import mongoose from "mongoose";
 
 let requests: any[] = [];
 
@@ -62,7 +62,7 @@ function calculateMatch(user1: any, user2: any) {
 
 // ✅ GET matches
 app.get("/matches", async (_req, res) => {
-  const users = await User.find(); // ✅ works now
+  const users = await User.find();
 
   const currentUser = users[0]!;
 
@@ -76,13 +76,58 @@ app.get("/matches", async (_req, res) => {
   res.json(matches);
 });
 
+// ✅ GET current user
+app.get("/me", async (req, res) => {
+  const email = req.query.email;
+  const user = await User.findOne({ email });
+
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  res.json(user);
+});
+
+// ✅ GET dashboard stats
+app.get("/dashboard", async (req, res) => {
+  const email = req.query.email;
+  const user = await User.findOne({ email });
+
+  if (!user) return res.status(404).json({});
+
+  res.json({
+    name: user.name,
+    streak: user.streak,
+    sessions: user.sessionsCompleted,
+    progress: Math.min(user.sessionsCompleted * 5, 100),
+  });
+});
+
+// ✅ GET dashboard matches (top 2)
+app.get("/dashboard-matches", async (_req, res) => {
+  const users = await User.find();
+
+  const currentUser = users[0]!;
+
+  const matches = users
+    .filter((u) => u._id.toString() !== currentUser._id.toString())
+    .slice(0, 2)
+    .map((u) => ({
+      _id: u._id,
+      name: u.name,
+      skillsHave: u.skillsHave,
+      skillsWant: u.skillsWant,
+      matchScore: calculateMatch(currentUser, u),
+    }));
+
+  res.json(matches);
+});
+
 // ✅ POST connect
 app.post("/connect", (req, res) => {
   const { userId } = req.body;
 
   requests.push({
     id: Date.now(),
-    senderId: 1, // current user
+    senderId: 1,
     receiverId: userId,
     status: "pending",
   });
