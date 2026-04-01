@@ -26,6 +26,8 @@ function RoutedLayout() {
       {/* 🔥 Hide on AI page */}
       {!isAIPage && (
         <button
+          type="button"
+          aria-label="Open AI Chat"
           onClick={() => navigate("/ai")}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full border shadow-lg flex items-center justify-center hover:scale-105 transition"
         >

@@ -2,7 +2,7 @@ import { useChat } from "@ai-sdk/react";
 import { env } from "@SkillSync-1/env/web";
 import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 
 import { Button } from "@/components/ui/button";
