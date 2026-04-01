@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@SkillSync-1/env": "*",
+    "bson": "^6.10.4",
     "dotenv": "^17.2.2",
+    "mongodb": "^6.21.0",
     "react-router-dom": "^7.13.2",
     "zod": "^4.1.13"
   },
