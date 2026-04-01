@@ -17,6 +17,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.144",
     "@SkillSync-1/env": "*",
     "bson": "^6.10.4",
     "dotenv": "^17.2.2",
