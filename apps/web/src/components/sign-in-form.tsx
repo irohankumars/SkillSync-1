@@ -10,7 +10,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
-export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
+export default function SignInForm({
+  onSwitchToSignUp,
+}: {
+  onSwitchToSignUp: () => void;
+}) {
   const navigate = useNavigate();
   const { isPending } = authClient.useSession();
 
@@ -26,9 +30,27 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
           password: value.password,
         },
         {
-          onSuccess: () => {
-            navigate("/dashboard");
-            toast.success("Sign in successful");
+          onSuccess: async () => {
+            toast.success("Success");
+
+            // 🔥 wait until session is actually available
+            let tries = 0;
+
+            const checkSession = async () => {
+              const session = await authClient.getSession();
+
+              if (session?.data) {
+                window.location.href = "/dashboard";
+              } else if (tries < 5) {
+                tries++;
+                setTimeout(checkSession, 300); // retry
+              } else {
+                // fallback
+                window.location.href = "/dashboard";
+              }
+            };
+
+            checkSession();
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);

@@ -1,6 +1,5 @@
-import { env } from "@SkillSync-1/env/web";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: env.VITE_SERVER_URL,
+  baseURL: "http://localhost:3000", // 🔥 hardcode for now
 });

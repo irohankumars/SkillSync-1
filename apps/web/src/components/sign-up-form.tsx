@@ -32,13 +32,27 @@ export default function SignUpForm({
           name: value.name,
         },
         {
-          onSuccess: () => {
-            navigate("/dashboard");
-            toast.success("Sign up successful");
-          },
-          onError: (error) => {
-            console.log(error); // 🔥 debug
-            toast.error(error.error?.message || "Signup failed");
+          onSuccess: async () => {
+            toast.success("Success");
+
+            // 🔥 wait until session is actually available
+            let tries = 0;
+
+            const checkSession = async () => {
+              const session = await authClient.getSession();
+
+              if (session?.data) {
+                window.location.href = "/dashboard";
+              } else if (tries < 5) {
+                tries++;
+                setTimeout(checkSession, 300); // retry
+              } else {
+                // fallback
+                window.location.href = "/dashboard";
+              }
+            };
+
+            checkSession();
           },
         },
       );
@@ -46,7 +60,7 @@ export default function SignUpForm({
     validators: {
       onSubmit: z.object({
         name: z.string().min(2, "Name must be at least 2 characters"),
-        email: z.string().email("Invalid email address"), // ✅ FIXED
+        email: z.string().email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
       }),
     },
