@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import AppShell from "./app-shell";
 import AI from "./routes/ai";
 import Dashboard from "./routes/dashboard";
-import Home from "./routes/home";
 import Login from "./routes/login";
 import SuccessPage from "./routes/success";
 import Profile from "./routes/profile";
@@ -24,22 +24,62 @@ function NotFound() {
 
 export const router = createBrowserRouter([
   {
-    path: "/", // parent
+    path: "/",
     element: <AppShell />,
     children: [
-      { index: true, element: <Home /> },
+      // 🔥 DEFAULT PAGE → Dashboard
+      { index: true, element: <Dashboard /> },
 
       { path: "login", element: <Login /> },
-      { path: "onboarding", element: <Onboarding /> },
-      { path: "dashboard", element: <Dashboard /> },
-
-      { path: "chat/:id", element: <Chat /> },
-      { path: "ai", element: <AI /> },
       { path: "success", element: <SuccessPage /> },
 
-      { path: "profile", element: <Profile /> },
-      { path: "matches", element: <Matches /> },
+      // 🔒 PROTECTED
+      {
+        path: "onboarding",
+        element: (
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard",
+        element: <Dashboard />, // same page (optional route)
+      },
+      {
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "matches",
+        element: (
+          <ProtectedRoute>
+            <Matches />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "ai",
+        element: (
+          <ProtectedRoute>
+            <AI />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "chat/:id",
+        element: (
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        ),
+      },
 
+      // ❌ NOT FOUND
       { path: "*", element: <NotFound /> },
     ],
   },

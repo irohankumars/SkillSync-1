@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 
 const AI: React.FC = () => {
   const [input, setInput] = useState("");
+
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: `${env.VITE_SERVER_URL}/ai`,
@@ -31,63 +32,79 @@ const AI: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-rows-[1fr_auto] overflow-hidden w-full mx-auto p-4">
-      <div className="overflow-y-auto space-y-4 pb-4">
-        {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground mt-8">
-            Ask me anything to get started!
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`p-3 rounded-lg ${
-                message.role === "user"
-                  ? "bg-primary/10 ml-8"
-                  : "bg-secondary/20 mr-8"
-              }`}
-            >
-              <p className="text-sm font-semibold mb-1">
-                {message.role === "user" ? "You" : "AI Assistant"}
+    <div className="h-[calc(100vh-80px)] flex flex-col overflow-hidden">
+      {/* 🧠 CHAT AREA */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-12 py-6">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center text-muted-foreground">
+              <h2 className="text-lg font-medium mb-2">Ask me anything</h2>
+              <p className="text-sm">
+                I’m your AI assistant for learning & skills 🚀
               </p>
-              {message.parts?.map((part, index) => {
-                if (part.type === "text") {
-                  return (
-                    <Streamdown
-                      key={index}
-                      isAnimating={
-                        status === "streaming" && message.role === "assistant"
-                      }
-                    >
-                      {part.text}
-                    </Streamdown>
-                  );
-                }
-                return null;
-              })}
             </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
+          ) : (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  {message.parts?.map((part, index) => {
+                    if (part.type === "text") {
+                      return (
+                        <Streamdown
+                          key={index}
+                          isAnimating={
+                            status === "streaming" &&
+                            message.role === "assistant"
+                          }
+                        >
+                          {part.text}
+                        </Streamdown>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="w-full flex items-center space-x-2 pt-2 border-t"
-      >
-        <Input
-          name="prompt"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1"
-          autoComplete="off"
-          autoFocus
-        />
-        <Button type="submit" size="icon">
-          <Send size={18} />
-        </Button>
-      </form>
+      {/* ✍️ INPUT */}
+      <div className="border-t bg-background px-4 sm:px-6 lg:px-12 py-4">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 border rounded-xl px-3 py-2 shadow-sm bg-background">
+            <Input
+              name="prompt"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Message AI..."
+              className="flex-1 border-0 focus-visible:ring-0 bg-transparent"
+              autoComplete="off"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
+              <Send size={18} />
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -17,12 +17,10 @@ export default function Profile() {
     avatar: "",
   });
 
-  // redirect
   useEffect(() => {
     if (!session && !isPending) navigate("/login");
   }, [session, isPending]);
 
-  // fetch user
   useEffect(() => {
     if (!session?.user?.email) return;
 
@@ -40,13 +38,10 @@ export default function Profile() {
       });
   }, [session]);
 
-  // save profile
   const handleSave = async () => {
     await fetch("http://localhost:3000/update-profile", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: session?.user?.email,
         name: form.name,
@@ -57,7 +52,6 @@ export default function Profile() {
       }),
     });
 
-    alert("Profile updated 🚀");
     setEditMode(false);
 
     const updated = await fetch(
@@ -69,129 +63,161 @@ export default function Profile() {
 
   if (isPending || !user) return <div>Loading...</div>;
 
+  // ✅ profile completion
+  const completion =
+    [
+      user.name,
+      user.bio,
+      user.skillsHave?.length,
+      user.skillsWant?.length,
+      user.avatar,
+    ].filter(Boolean).length * 20;
+
   return (
-    <div className="container mx-auto max-w-4xl p-6 space-y-6">
-      {/* 👤 PROFILE */}
-      <div className="border p-6 rounded space-y-4">
-        {editMode ? (
-          <>
-            {/* Avatar */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Profile Image URL
-              </label>
+    <div className="w-full px-4 sm:px-6 lg:px-12 py-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 👈 LEFT SIDEBAR (GitHub style) */}
+        <div className="space-y-6">
+          {/* Profile Card */}
+          <div className="bg-background border rounded-xl p-6 shadow-sm text-center">
+            <img
+              src={
+                user.avatar || `https://ui-avatars.com/api/?name=${user.name}`
+              }
+              className="w-24 h-24 rounded-full mx-auto mb-4"
+            />
+
+            <h2 className="text-lg font-semibold">{user.name}</h2>
+            <p className="text-sm text-muted-foreground">
+              {user.bio || "No bio added"}
+            </p>
+
+            <p className="text-xs text-green-500 mt-2">
+              ● Available for sessions
+            </p>
+
+            <button
+              onClick={() => setEditMode(true)}
+              className="mt-4 w-full border rounded-lg py-2 text-sm hover:bg-muted"
+            >
+              Edit Profile
+            </button>
+          </div>
+
+          {/* Profile Completion */}
+          <div className="bg-background border rounded-xl p-4 shadow-sm">
+            <div className="flex justify-between text-sm mb-2">
+              <span>Profile Completion</span>
+              <span>{completion}%</span>
+            </div>
+            <div className="w-full bg-muted h-2 rounded-full">
+              <div
+                className="bg-blue-600 h-2 rounded-full"
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="bg-background border rounded-xl p-4 shadow-sm space-y-2">
+            <p className="text-sm">
+              Sessions:{" "}
+              <span className="font-semibold">
+                {user.sessionsCompleted || 0}
+              </span>
+            </p>
+            <p className="text-sm">
+              Streak: <span className="font-semibold">{user.streak || 0}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* 👉 RIGHT CONTENT */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* EDIT MODE */}
+          {editMode && (
+            <div className="bg-background border rounded-xl p-6 shadow-sm space-y-4">
+              <h2 className="font-semibold">Edit Profile</h2>
+
               <input
                 value={form.avatar}
                 onChange={(e) => setForm({ ...form, avatar: e.target.value })}
-                placeholder="Paste image link"
-                className="border p-2 w-full rounded"
+                placeholder="Avatar URL"
+                className="w-full border rounded-lg p-2 text-sm bg-background"
               />
-            </div>
 
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Your Name
-              </label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Enter your name"
-                className="border p-2 w-full rounded"
+                className="w-full border rounded-lg p-2 text-sm bg-background"
               />
-            </div>
 
-            {/* Bio */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Short Description
-              </label>
               <textarea
                 value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                placeholder="Tell others about you..."
-                className="border p-2 w-full rounded"
+                className="w-full border rounded-lg p-2 text-sm bg-background"
               />
-            </div>
 
-            {/* Skills Have */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Skills You Have
-              </label>
               <input
                 value={form.skillsHave}
                 onChange={(e) =>
                   setForm({ ...form, skillsHave: e.target.value })
                 }
-                placeholder="e.g. ML, OS, JavaScript"
-                className="border p-2 w-full rounded"
+                placeholder="Skills you can teach"
+                className="w-full border rounded-lg p-2 text-sm bg-background"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                These are skills you can teach others
-              </p>
-            </div>
 
-            {/* Skills Want */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Skills You Want to Learn
-              </label>
               <input
                 value={form.skillsWant}
                 onChange={(e) =>
                   setForm({ ...form, skillsWant: e.target.value })
                 }
-                placeholder="e.g. React, Node.js"
-                className="border p-2 w-full rounded"
+                placeholder="Skills you want to learn"
+                className="w-full border rounded-lg p-2 text-sm bg-background"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                These help us find better matches for you
-              </p>
+
+              <button
+                onClick={handleSave}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm w-full"
+              >
+                Save Changes
+              </button>
+            </div>
+          )}
+
+          {/* SKILLS */}
+          <div className="bg-background border rounded-xl p-6 shadow-sm">
+            <h3 className="font-semibold mb-3">Skills</h3>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              {user.skillsHave?.map((s: string, i: number) => (
+                <span
+                  key={i}
+                  className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full"
+                >
+                  {s} • Intermediate
+                </span>
+              ))}
             </div>
 
-            <button
-              onClick={handleSave}
-              className="bg-black text-white px-4 py-2 rounded w-full mt-2"
-            >
-              Save Profile
-            </button>
-          </>
-        ) : (
-          <>
-            <img
-              src={user.avatar || "https://via.placeholder.com/100"}
-              className="w-20 h-20 rounded-full"
-            />
+            <div className="flex flex-wrap gap-2">
+              {user.skillsWant?.map((s: string, i: number) => (
+                <span
+                  key={i}
+                  className="bg-muted text-muted-foreground text-xs px-3 py-1 rounded-full"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
 
-            <h2 className="text-xl font-semibold">{user.name}</h2>
-            <p className="text-gray-600">{user.bio}</p>
-
-            <button
-              onClick={() => setEditMode(true)}
-              className="border px-4 py-1 rounded"
-            >
-              Edit Profile
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* 🧠 SKILLS */}
-      <div className="border p-4 rounded">
-        <h3 className="font-semibold mb-2">Skills</h3>
-        <p>
-          <strong>Can Teach:</strong> {user.skillsHave?.join(", ")}
-        </p>
-        <p>
-          <strong>Wants to Learn:</strong> {user.skillsWant?.join(", ")}
-        </p>
-      </div>
-
-      {/* 📊 STATS */}
-      <div className="border p-4 rounded">
-        <p>Sessions: {user.sessionsCompleted || 0}</p>
-        <p>Streak: {user.streak || 0}</p>
+          {/* ACTIVITY */}
+          <div className="bg-background border rounded-xl p-6 shadow-sm">
+            <h3 className="font-semibold mb-2">Recent Activity</h3>
+            <p className="text-sm text-muted-foreground">No sessions yet</p>
+          </div>
+        </div>
       </div>
     </div>
   );

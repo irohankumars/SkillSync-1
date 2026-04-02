@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { authClient } from "@/lib/auth-client";
+import { useTheme } from "@/components/theme-provider";
+import { Sun, Moon } from "lucide-react";
 
 type MatchUser = {
   _id: string;
@@ -21,37 +23,35 @@ type RequestType = {
 export default function Matches() {
   const navigate = useNavigate();
   const { data: session } = authClient.useSession();
+  const { theme, setTheme } = useTheme();
 
   const [tab, setTab] = useState("suggested");
   const [matches, setMatches] = useState<MatchUser[]>([]);
   const [requests, setRequests] = useState<RequestType[]>([]);
 
-  // ✅ FETCH MATCHES
   useEffect(() => {
     if (session?.user?.email) {
       fetch(`http://localhost:3000/matches?email=${session.user.email}`)
-        .then(async (res) => {
-          if (!res.ok) throw new Error(await res.text());
-          return res.json();
-        })
-        .then(setMatches)
-        .catch(console.error);
+        .then((res) => res.json())
+        .then((data) => {
+          const sorted = data.sort(
+            (a: MatchUser, b: MatchUser) => b.matchScore - a.matchScore,
+          );
+          setMatches(sorted);
+        });
     }
   }, [session]);
 
-  // ✅ FETCH REQUESTS
   const loadRequests = () => {
     fetch("http://localhost:3000/requests")
       .then((res) => res.json())
-      .then(setRequests)
-      .catch(console.error);
+      .then(setRequests);
   };
 
   useEffect(() => {
     loadRequests();
   }, []);
 
-  // 🔥 FIXED CONNECT (uses emails → backend converts to IDs)
   const handleConnect = async (receiverEmail: string) => {
     await fetch("http://localhost:3000/connect", {
       method: "POST",
@@ -64,68 +64,118 @@ export default function Matches() {
       }),
     });
 
-    alert("Request sent 🚀");
     loadRequests();
   };
 
-  // ✅ ACCEPT
   const handleAccept = async (id: string) => {
     await fetch("http://localhost:3000/accept", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-
     loadRequests();
   };
 
-  // ✅ REJECT
   const handleReject = async (id: string) => {
     await fetch("http://localhost:3000/reject", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-
     loadRequests();
   };
 
+  const getStatus = (userEmail: string) => {
+    const req = requests.find(
+      (r) =>
+        (r.senderId?.email === session?.user?.email &&
+          r.receiverId?.email === userEmail) ||
+        (r.receiverId?.email === session?.user?.email &&
+          r.senderId?.email === userEmail),
+    );
+
+    return req?.status || null;
+  };
+
+  const filteredMatches = matches.filter((user) => {
+    const status = getStatus(user.email);
+    return status !== "accepted";
+  });
+
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-6 space-y-6">
-      <div className="flex gap-4 border-b pb-2">
-        <button onClick={() => setTab("suggested")}>Suggested</button>
-        <button onClick={() => setTab("connected")}>Connected</button>
-        <button onClick={() => setTab("requests")}>Requests</button>
+    <div className="w-full px-4 sm:px-6 lg:px-12 py-6 space-y-6">
+      {/* 🌙 THEME TOGGLE */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="border rounded-lg p-2 hover:bg-muted"
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
       </div>
 
-      {/* 👥 Suggested */}
-      {tab === "suggested" && (
-        <div className="space-y-4">
-          {matches.map((user) => (
-            <div key={user._id} className="border p-4 rounded">
-              <h3>{user.name}</h3>
-              <p>Has: {user.skillsHave?.join(", ")}</p>
-              <p>Wants: {user.skillsWant?.join(", ")}</p>
-              <p>{user.matchScore}% match</p>
+      {/* TABS */}
+      <div className="flex gap-4 border-b pb-2">
+        {["suggested", "connected", "requests"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              tab === t
+                ? "bg-blue-600 text-white"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
-              <button
-                onClick={() => handleConnect(user.email)}
-                className="mt-2 border px-3 py-1 rounded"
+      {/* 👥 SUGGESTED */}
+      {tab === "suggested" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredMatches.map((user) => {
+            const status = getStatus(user.email);
+
+            return (
+              <div
+                key={user._id}
+                className="bg-background border rounded-xl p-4 shadow-sm space-y-2"
               >
-                Connect
-              </button>
-            </div>
-          ))}
+                <h3 className="font-semibold">{user.name}</h3>
+
+                <p className="text-xs text-muted-foreground">
+                  Has: {user.skillsHave?.join(", ")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Wants: {user.skillsWant?.join(", ")}
+                </p>
+
+                <span className="text-xs bg-muted px-2 py-1 rounded">
+                  {user.matchScore}% match
+                </span>
+
+                {status === "pending" ? (
+                  <button className="w-full mt-2 bg-muted text-muted-foreground py-1.5 rounded-md text-sm cursor-not-allowed">
+                    Request Sent
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(user.email)}
+                    className="w-full mt-2 bg-blue-600 text-white py-1.5 rounded-md text-sm hover:bg-blue-700"
+                  >
+                    Connect
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* 🤝 Connected */}
+      {/* 🤝 CONNECTED */}
       {tab === "connected" && (
-        <div className="space-y-4">
+        <div className="bg-background border rounded-xl shadow-sm divide-y">
           {requests
             .filter(
               (r) =>
@@ -142,43 +192,51 @@ export default function Matches() {
               return (
                 <div
                   key={r._id}
-                  className="border p-4 rounded flex items-center justify-between"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-muted transition"
                 >
-                  {/* LEFT SIDE */}
                   <div className="flex items-center gap-3">
                     <img
                       src={
-                        otherUser?.avatar || "https://via.placeholder.com/40"
+                        otherUser?.avatar ||
+                        "https://ui-avatars.com/api/?name=" + otherUser?.name
                       }
-                      className="w-10 h-10 rounded-full"
+                      className="w-11 h-11 rounded-full"
                     />
 
                     <div>
-                      <p className="font-semibold">
-                        {otherUser?.name || "User"}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {otherUser?.skillsHave?.join(", ")}
+                      <p className="font-medium text-sm">{otherUser?.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {otherUser?.skillsHave?.slice(0, 2).join(", ")}
                       </p>
                     </div>
                   </div>
 
-                  {/* RIGHT SIDE */}
                   <button
                     onClick={() => navigate(`/chat/${otherUser?.email}`)}
-                    className="border px-3 py-1 rounded hover:bg-black hover:text-white"
+                    className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700"
                   >
-                    Chat 💬
+                    Chat
                   </button>
                 </div>
               );
             })}
+
+          {requests.filter(
+            (r) =>
+              r.status === "accepted" &&
+              (r.senderId?.email === session?.user?.email ||
+                r.receiverId?.email === session?.user?.email),
+          ).length === 0 && (
+            <p className="p-4 text-sm text-muted-foreground text-center">
+              No connections yet
+            </p>
+          )}
         </div>
       )}
 
-      {/* 📥 Requests */}
+      {/* 📥 REQUESTS */}
       {tab === "requests" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {requests
             .filter(
               (r) =>
@@ -186,19 +244,21 @@ export default function Matches() {
                 r.receiverId?.email === session?.user?.email,
             )
             .map((r) => (
-              <div key={r._id} className="border p-4 rounded">
-                <p>{r.senderId?.email} wants to connect</p>
+              <div key={r._id} className="bg-background border rounded-xl p-4">
+                <p className="text-sm font-medium">
+                  {r.senderId?.name || r.senderId?.email}
+                </p>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleAccept(r._id)}
-                    className="border px-3 py-1 rounded"
+                    className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
                   >
                     Accept
                   </button>
                   <button
                     onClick={() => handleReject(r._id)}
-                    className="border px-3 py-1 rounded"
+                    className="border px-3 py-1 rounded-md text-sm hover:bg-muted"
                   >
                     Reject
                   </button>

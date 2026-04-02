@@ -10,6 +10,9 @@
     "skipLibCheck": true,
     "types": ["vite/client"],
     "rootDirs": ["."],
+
+    "ignoreDeprecations": "6.0",
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
