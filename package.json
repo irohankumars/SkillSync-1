@@ -21,8 +21,10 @@
     "@SkillSync-1/env": "*",
     "bson": "^6.10.4",
     "dotenv": "^17.2.2",
+    "emoji-picker-react": "^4.18.0",
     "mongodb": "^6.21.0",
     "react-router-dom": "^7.13.2",
+    "socket.io-client": "^4.8.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {

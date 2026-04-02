@@ -9,24 +9,41 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
 
+  // 🔐 redirect if not logged in
   useEffect(() => {
     if (!session && !isPending) {
       navigate("/login");
     }
   }, [session, isPending, navigate]);
 
-  // 🔥 fetch dashboard data
+  // 🔥 fetch data
   useEffect(() => {
     if (session?.user?.email) {
       fetch(`http://localhost:3000/dashboard?email=${session.user.email}`)
         .then((res) => res.json())
         .then(setData);
 
-      fetch("http://localhost:3000/dashboard-matches")
+      // ✅ FIX: pass email here
+      fetch(
+        `http://localhost:3000/dashboard-matches?email=${session.user.email}`,
+      )
         .then((res) => res.json())
         .then(setMatches);
     }
   }, [session]);
+
+  // 🔥 CONNECT FUNCTION
+  const handleConnect = async (userId: string) => {
+    await fetch("http://localhost:3000/connect", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    alert("Request sent 🚀");
+  };
 
   if (isPending || !data) return <div>Loading...</div>;
 
@@ -59,7 +76,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* 🤖 Suggestions (keep static for now) */}
+      {/* 🤖 Suggestions */}
       <section className="border rounded-lg p-4">
         <h2 className="mb-2 font-medium">Suggestions</h2>
         <div className="space-y-2 text-sm">
@@ -76,12 +93,16 @@ export default function Dashboard() {
           {matches.map((m) => (
             <div key={m._id} className="border rounded p-3">
               <p className="font-medium">{m.name}</p>
-              <p className="text-sm">Has: {m.skillsHave.join(", ")}</p>
-              <p className="text-sm">Wants: {m.skillsWant.join(", ")}</p>
+              <p className="text-sm">Has: {m.skillsHave?.join(", ")}</p>
+              <p className="text-sm">Wants: {m.skillsWant?.join(", ")}</p>
               <span className="text-xs border px-2 py-1 rounded">
                 {m.matchScore}% match
               </span>
-              <button className="mt-2 w-full border rounded py-1">
+
+              <button
+                onClick={() => handleConnect(m._id)}
+                className="mt-2 w-full border rounded py-1 hover:bg-gray-100"
+              >
                 Connect
               </button>
             </div>

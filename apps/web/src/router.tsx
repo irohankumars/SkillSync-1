@@ -8,6 +8,8 @@ import Login from "./routes/login";
 import SuccessPage from "./routes/success";
 import Profile from "./routes/profile";
 import Matches from "./routes/matches";
+import Onboarding from "@/routes/onboarding";
+import Chat from "@/routes/chat";
 
 function NotFound() {
   return (
@@ -22,19 +24,22 @@ function NotFound() {
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/", // parent
     element: <AppShell />,
     children: [
       { index: true, element: <Home /> },
+
       { path: "login", element: <Login /> },
+      { path: "onboarding", element: <Onboarding /> },
       { path: "dashboard", element: <Dashboard /> },
+
+      { path: "chat/:id", element: <Chat /> },
       { path: "ai", element: <AI /> },
       { path: "success", element: <SuccessPage /> },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
+
+      { path: "profile", element: <Profile /> },
       { path: "matches", element: <Matches /> },
+
       { path: "*", element: <NotFound /> },
     ],
   },
