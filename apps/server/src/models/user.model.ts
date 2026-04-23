@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema(
       default: "Beginner",
     },
 
+    // ✅ existing
     streak: {
       type: Number,
       default: 0,
@@ -51,6 +52,22 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     ],
+
+    // ✅ ADD THESE (fix)
+    connections: {
+      type: Number,
+      default: 0,
+    },
+
+    progress: {
+      type: Number,
+      default: 0,
+    },
+
+    weeklySessions: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

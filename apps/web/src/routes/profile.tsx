@@ -29,7 +29,7 @@ export default function Profile() {
       .then((data) => {
         setUser(data);
         setForm({
-          name: data.name || "",
+          name: data.name || session.user.name || "",
           bio: data.bio || "",
           skillsHave: data.skillsHave?.join(", ") || "",
           skillsWant: data.skillsWant?.join(", ") || "",
@@ -63,7 +63,8 @@ export default function Profile() {
 
   if (isPending || !user) return <div>Loading...</div>;
 
-  // ✅ profile completion
+  const displayName = user.name || session?.user?.name || "User";
+
   const completion =
     [
       user.name,
@@ -76,18 +77,18 @@ export default function Profile() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-12 py-6 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 👈 LEFT SIDEBAR (GitHub style) */}
+        {/* LEFT */}
         <div className="space-y-6">
-          {/* Profile Card */}
           <div className="bg-background border rounded-xl p-6 shadow-sm text-center">
             <img
               src={
-                user.avatar || `https://ui-avatars.com/api/?name=${user.name}`
+                user.avatar || `https://ui-avatars.com/api/?name=${displayName}`
               }
               className="w-24 h-24 rounded-full mx-auto mb-4"
             />
 
-            <h2 className="text-lg font-semibold">{user.name}</h2>
+            <h2 className="text-lg font-semibold">{displayName}</h2>
+
             <p className="text-sm text-muted-foreground">
               {user.bio || "No bio added"}
             </p>
@@ -104,7 +105,7 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* Profile Completion */}
+          {/* Completion */}
           <div className="bg-background border rounded-xl p-4 shadow-sm">
             <div className="flex justify-between text-sm mb-2">
               <span>Profile Completion</span>
@@ -132,9 +133,8 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 👉 RIGHT CONTENT */}
+        {/* RIGHT */}
         <div className="lg:col-span-2 space-y-6">
-          {/* EDIT MODE */}
           {editMode && (
             <div className="bg-background border rounded-xl p-6 shadow-sm space-y-4">
               <h2 className="font-semibold">Edit Profile</h2>
@@ -185,7 +185,7 @@ export default function Profile() {
             </div>
           )}
 
-          {/* SKILLS */}
+          {/* Skills */}
           <div className="bg-background border rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-3">Skills</h3>
 
@@ -212,7 +212,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* ACTIVITY */}
+          {/* Activity */}
           <div className="bg-background border rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-2">Recent Activity</h3>
             <p className="text-sm text-muted-foreground">No sessions yet</p>

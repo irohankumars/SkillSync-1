@@ -38,12 +38,12 @@ const connectDB = async () => {
 
 await connectDB();
 
-// ✅ CORS FIX (IMPORTANT 🔥)
+// ✅ CORS
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ exact frontend
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // ✅ required for auth
+    credentials: true,
   }),
 );
 
@@ -51,7 +51,9 @@ app.use(express.json());
 
 app.all("/api/auth{/*path}", toNodeHandler(auth));
 
+// =======================
 // 🤖 AI
+// =======================
 app.post("/ai", async (req, res) => {
   const { messages = [] } = (req.body || {}) as { messages: UIMessage[] };
 
@@ -73,26 +75,24 @@ app.get("/", (_req, res) => {
 });
 
 // =======================
-// 🔥 SkillSync APIs
+// 🔥 MATCH LOGIC
 // =======================
-
-// 🧠 match logic
 function calculateMatch(user1: any, user2: any) {
-  const haveWant1 = user1.skillsHave.filter((s: string) =>
-    user2.skillsWant.includes(s),
-  );
+  const haveWant1 =
+    user1.skillsHave?.filter((s: string) => user2.skillsWant?.includes(s)) ||
+    [];
 
-  const haveWant2 = user2.skillsHave.filter((s: string) =>
-    user1.skillsWant.includes(s),
-  );
+  const haveWant2 =
+    user2.skillsHave?.filter((s: string) => user1.skillsWant?.includes(s)) ||
+    [];
 
-  const sameHave = user1.skillsHave.filter((s: string) =>
-    user2.skillsHave.includes(s),
-  );
+  const sameHave =
+    user1.skillsHave?.filter((s: string) => user2.skillsHave?.includes(s)) ||
+    [];
 
-  const sameWant = user1.skillsWant.filter((s: string) =>
-    user2.skillsWant.includes(s),
-  );
+  const sameWant =
+    user1.skillsWant?.filter((s: string) => user2.skillsWant?.includes(s)) ||
+    [];
 
   let score = 0;
 
@@ -106,11 +106,20 @@ function calculateMatch(user1: any, user2: any) {
   return Math.min(score, 100);
 }
 
+// =======================
 // ✅ MATCHES
+// =======================
 app.get("/matches", async (req, res) => {
-  const email = req.query.email;
+  let { email } = req.query;
 
-  const currentUser = await User.findOne({ email });
+  if (!email) return res.json([]);
+
+  email = email.toString().trim().toLowerCase();
+
+  const currentUser = await User.findOne({
+    email: { $regex: `^${email}$`, $options: "i" },
+  });
+
   if (!currentUser) return res.json([]);
 
   const users = await User.find();
@@ -126,8 +135,9 @@ app.get("/matches", async (req, res) => {
   res.json(matches);
 });
 
+// =======================
 // ✅ CONNECT
-// ✅ CONNECT (FIXED)
+// =======================
 app.post("/connect", async (req, res) => {
   const { senderEmail, receiverEmail } = req.body;
 
@@ -139,15 +149,12 @@ app.post("/connect", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // prevent duplicate request
     const existing = await Request.findOne({
       senderId: sender._id,
       receiverId: receiver._id,
     });
 
-    if (existing) {
-      return res.json({ message: "Already sent" });
-    }
+    if (existing) return res.json({ message: "Already sent" });
 
     await Request.create({
       senderId: sender._id,
@@ -156,13 +163,14 @@ app.post("/connect", async (req, res) => {
     });
 
     res.json({ message: "Request sent 🚀" });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ error: "Failed" });
   }
 });
 
-// ✅ GET REQUESTS
+// =======================
+// ✅ REQUESTS
+// =======================
 app.get("/requests", async (_req, res) => {
   const requests = await Request.find()
     .populate("senderId", "name email")
@@ -171,25 +179,19 @@ app.get("/requests", async (_req, res) => {
   res.json(requests);
 });
 
-// ✅ ACCEPT
 app.post("/accept", async (req, res) => {
-  const { id } = req.body;
-
-  await Request.findByIdAndUpdate(id, { status: "accepted" });
-
+  await Request.findByIdAndUpdate(req.body.id, { status: "accepted" });
   res.json({ message: "Accepted" });
 });
 
-// ✅ REJECT
 app.post("/reject", async (req, res) => {
-  const { id } = req.body;
-
-  await Request.findByIdAndUpdate(id, { status: "rejected" });
-
+  await Request.findByIdAndUpdate(req.body.id, { status: "rejected" });
   res.json({ message: "Rejected" });
 });
 
-// ✅ ONBOARDING
+// =======================
+// ✅ ONBOARDING (FIXED)
+// =======================
 app.post("/api/user/onboarding", async (req, res) => {
   const { email, skillsHave, skillsWant, skillLevel } = req.body;
 
@@ -200,6 +202,14 @@ app.post("/api/user/onboarding", async (req, res) => {
       user = await User.create({
         email,
         name: email.split("@")[0],
+
+        // ✅ defaults
+        sessionsCompleted: 0,
+        connections: 0,
+        streak: 0,
+        progress: 10,
+        weeklySessions: 0,
+
         skillsHave,
         skillsWant,
         skillLevel,
@@ -208,62 +218,65 @@ app.post("/api/user/onboarding", async (req, res) => {
       user.skillsHave = skillsHave;
       user.skillsWant = skillsWant;
       user.skillLevel = skillLevel;
+
+      user.sessionsCompleted ??= 0;
+      user.connections ??= 0;
+      user.streak ??= 0;
+      user.progress ??= 10;
+      user.weeklySessions ??= 0;
+
       await user.save();
     }
 
     res.json({ message: "Profile saved ✅" });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ error: "Failed" });
   }
 });
 
 // =======================
-// 🔥 SOCKET.IO FIX
+// 💥 FIXED /me
 // =======================
-
-const httpServer = createServer(app);
-
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173", // ✅ FIXED
-    credentials: true,
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("join_room", async (roomId) => {
-    socket.join(roomId);
-
-    const messages = await Message.find({ room: roomId });
-    socket.emit("chat_history", messages);
-  });
-
-  socket.on("send_message", async (data) => {
-    await Message.create(data);
-    io.to(data.room).emit("receive_message", data);
-  });
-});
-
 app.get("/me", async (req, res) => {
-  const { email } = req.query;
+  let { email } = req.query;
 
   try {
-    const user = await User.findOne({ email });
+    if (!email) {
+      return res.status(400).json({ error: "Email required" });
+    }
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+    email = email.toString().trim().toLowerCase();
+
+    let user = await User.findOne({
+      email: { $regex: `^${email}$`, $options: "i" },
+    });
+
+    // ✅ AUTO CREATE USER (DEMO FIX)
+    if (!user) {
+      user = await User.create({
+        email,
+        name: email.split("@")[0],
+        sessionsCompleted: 0,
+        connections: 0,
+        streak: 0,
+        progress: 10,
+        weeklySessions: 0,
+        skillsHave: [],
+        skillsWant: [],
+      });
+    }
 
     res.json(user);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed" });
   }
 });
 
+// =======================
 // ✅ UPDATE PROFILE
+// =======================
 app.post("/update-profile", async (req, res) => {
-  const { email, name, bio, skillsHave, skillsWant, avatar } = req.body;
+  const { email, name, bio, skillsHave, skillsWant } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -274,26 +287,25 @@ app.post("/update-profile", async (req, res) => {
     user.bio = bio;
     user.skillsHave = skillsHave;
     user.skillsWant = skillsWant;
-    // user.avatar = avatar;
 
     await user.save();
 
     res.json({ message: "Profile updated ✅", user });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to update" });
   }
 });
 
+// =======================
+// ✅ SESSION TRACK
+// =======================
 app.post("/start-session", async (req, res) => {
   const { email } = req.body;
 
   await User.findOneAndUpdate(
     { email },
     {
-      $inc: {
-        sessionsCompleted: 1,
-        streak: 1,
-      },
+      $inc: { sessionsCompleted: 1, streak: 1, weeklySessions: 1 },
     },
   );
 
@@ -301,9 +313,33 @@ app.post("/start-session", async (req, res) => {
 });
 
 // =======================
-// 🚀 START SERVER
+// 🔥 SOCKET.IO
 // =======================
+const httpServer = createServer(app);
 
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  socket.on("join_room", async (roomId) => {
+    socket.join(roomId);
+    const messages = await Message.find({ room: roomId });
+    socket.emit("chat_history", messages);
+  });
+
+  socket.on("send_message", async (data) => {
+    await Message.create(data);
+    io.to(data.room).emit("receive_message", data);
+  });
+});
+
+// =======================
+// 🚀 START
+// =======================
 httpServer.listen(3000, () => {
   console.log("Server running 🚀 http://localhost:3000");
 });

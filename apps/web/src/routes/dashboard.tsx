@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { Sun, Moon } from "lucide-react"; // ✅ added
 
 export default function Dashboard() {
   const { data: session, isPending } = authClient.useSession();
@@ -8,10 +9,24 @@ export default function Dashboard() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ THEME STATE ADDED
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) setTheme(saved);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   useEffect(() => {
     if (isPending) return;
 
-    // 🚫 not logged in → no fetch
     if (!session?.user?.email) {
       setLoading(false);
       return;
@@ -89,8 +104,18 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
-              🔥 {data.streak || 0} day streak
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
+                🔥 {data.streak || 0} day streak
+              </div>
+
+              {/* ✅ THEME TOGGLE BUTTON */}
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-xl border bg-background hover:bg-muted transition"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
             </div>
           </div>
 
@@ -133,7 +158,6 @@ export default function Dashboard() {
 
           {/* 📈 PROGRESS + WEEKLY */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Progress */}
             <div className="rounded-2xl border p-6 bg-background shadow-sm">
               <p className="text-sm text-muted-foreground">Overall Progress</p>
               <h2 className="text-3xl font-bold mt-2 text-blue-600">
@@ -148,7 +172,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Weekly */}
             <div className="rounded-2xl border p-6 bg-background shadow-sm">
               <p className="text-sm text-muted-foreground">Weekly Activity</p>
 

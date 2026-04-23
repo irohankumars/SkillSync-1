@@ -16,7 +16,7 @@ export default function Onboarding() {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     const payload = {
-      email: user?.email, // 🔥 FIX
+      email: user?.email,
       skillsHave: skillsHave.split(",").map((s) => s.trim()),
       skillsWant: skillsWant.split(",").map((s) => s.trim()),
       skillLevel: level,
@@ -39,43 +39,56 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 space-y-4">
-      <h1 className="text-2xl font-bold text-center">Complete your profile</h1>
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-8 space-y-6">
+        <h1 className="text-2xl font-bold text-center text-white">
+          Complete your profile 🚀
+        </h1>
 
-      <div>
-        <Label>Skills You Have (comma separated)</Label>
-        <Input
-          placeholder="React, Node, Python"
-          value={skillsHave}
-          onChange={(e) => setSkillsHave(e.target.value)}
-        />
-      </div>
+        {/* Skills Have */}
+        <div className="space-y-2">
+          <Label className="text-gray-300">Skills You Have</Label>
+          <Input
+            placeholder="React, Node, Python"
+            value={skillsHave}
+            onChange={(e) => setSkillsHave(e.target.value)}
+            className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-      <div>
-        <Label>Skills You Want</Label>
-        <Input
-          placeholder="DSA, ML"
-          value={skillsWant}
-          onChange={(e) => setSkillsWant(e.target.value)}
-        />
-      </div>
+        {/* Skills Want */}
+        <div className="space-y-2">
+          <Label className="text-gray-300">Skills You Want</Label>
+          <Input
+            placeholder="DSA, ML"
+            value={skillsWant}
+            onChange={(e) => setSkillsWant(e.target.value)}
+            className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-      <div>
-        <Label>Skill Level</Label>
-        <select
-          className="w-full p-2 border rounded-md bg-black"
-          value={level}
-          onChange={(e) => setLevel(e.target.value)}
+        {/* Level */}
+        <div className="space-y-2">
+          <Label className="text-gray-300">Skill Level</Label>
+          <select
+            className="w-full p-2 rounded-md bg-white/10 border border-white/20 text-white focus:ring-2 focus:ring-blue-500"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+          >
+            <option className="text-black">Beginner</option>
+            <option className="text-black">Intermediate</option>
+            <option className="text-black">Advanced</option>
+          </select>
+        </div>
+
+        {/* Button */}
+        <Button
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
+          onClick={handleSubmit}
         >
-          <option>Beginner</option>
-          <option>Intermediate</option>
-          <option>Advanced</option>
-        </select>
+          Finish Setup
+        </Button>
       </div>
-
-      <Button className="w-full" onClick={handleSubmit}>
-        Finish Setup
-      </Button>
     </div>
   );
 }
