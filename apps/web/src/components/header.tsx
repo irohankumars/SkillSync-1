@@ -25,7 +25,7 @@ export default function Header() {
           {/* LEFT */}
           <div className="flex items-center gap-3 text-2xl font-semibold text-gray-900 dark:text-white">
             <img src="/black-logo.png" className="h-9 dark:invert" />
-            <span className="hidden md:block">SkillSync</span>
+            <span className="hidden md:block">EduMax</span>
           </div>
 
           {/* CENTER */}

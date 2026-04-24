@@ -74,7 +74,7 @@ export default function Dashboard() {
             </p>
 
             <h1 className="text-6xl sm:text-8xl lg:text-[120px] font-bold text-white">
-              SKILLSYNC
+              EduMax
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
